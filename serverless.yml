@@ -1,0 +1,51 @@
+service: fff-serverless
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: arn:aws:dynamodb:us-east-1:*:*
+resources:
+  Resources:
+    UserTable:
+      Type: "AWS::DynamoDB::Table"
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: "users"
+
+functions:
+  create-user:
+    handler: src/handler/createUser.createUser
+    events:
+      - http:
+          path: users
+          method: post
+          cors: true
+  list-users:
+    handler: src/handler/listUsers.listUsers
+    events:
+      - http:
+          path: users
+          method: get
+          cors: true
