@@ -26,9 +26,9 @@ module.exports.createUser = (event, context, callback)=>{
     dynamoDB.put(params,(error, data)=>{
        
         if(error){
-       console.log(error);
-       callback(new error(error));
-       return;
+            console.log(error);
+            callback(new error(error));
+            return;
         }
         const response={
             statusCode:201,

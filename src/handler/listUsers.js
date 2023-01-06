@@ -11,9 +11,9 @@ module.exports.listUsers = (event, context, callback)=>{
     dynamoDB.scan(params,(error, data)=>{
       
         if(error){
-       console.log(error);
-       callback(new error(error));
-       return;
+            console.log(error);
+            callback(new error(error));
+            return;
         }
         const response={
             statusCode:200,
