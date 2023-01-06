@@ -56,3 +56,17 @@ functions:
           path: users/{id}
           method: get
           cors: true
+  update-user:
+    handler: src/handler/updateUser.updateUser
+    events:
+      - http:
+          path: users/{id}
+          method: put
+          cors: true
+  delete-user:
+    handler: src/handler/deleteUser.deleteUser
+    events:
+      - http:
+          path: users/{id}
+          method: delete
+          cors: true
