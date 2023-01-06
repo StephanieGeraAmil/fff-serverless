@@ -49,3 +49,10 @@ functions:
           path: users
           method: get
           cors: true
+          list-users:
+  handler: src/handler/getUser.getUser
+  events:
+    - http:
+        path: users/{id}
+        method: get
+        cors: true
