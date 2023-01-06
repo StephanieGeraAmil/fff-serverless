@@ -27,7 +27,7 @@ module.exports.createUser = (event, context, callback)=>{
        
         if(error){
             console.log(error);
-            callback(new error(error));
+            callback(new Error(error));
             return;
         }
         const response={

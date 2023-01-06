@@ -6,22 +6,22 @@ module.exports.getUser = (event, context, callback)=>{
  
     const params={
         TableName: 'users',
-        key:{
-            id: event.pathparameters.id
+        Key: {
+            id: event.pathParameters.id
         }
     }
     dynamoDB.get(params,(error, data)=>{
       
         if(error){
             console.log(error);
-            callback(new error(error));
+            callback(new Error(error));
             return;
         }
-        const response= dataItem?{
+        const response= data.Item?{
             statusCode:200,
             body: JSON.stringify(data.Item)
         }:{
-             statusCode:404,
+            statusCode:404,
             body: JSON.stringify({"message" : "User not found"})
         }
         callback(null, response);
