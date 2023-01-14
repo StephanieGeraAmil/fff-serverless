@@ -86,22 +86,22 @@ functions:
           method: delete
           cors: true
   OnConnectHandler:
-    handler: handler.onConnect
+    handler: src/handler/wsConnectionHandler.onConnect
     events:
       - websocket:
           route: $connect
   OnDisconnect:
-    handler: handler.onDisconnect
+    handler: src/handler/wsConnectionHandler.onDisconnect
     events:
       - websocket:
           route: $disconnect
   OnBroadcast:
-    handler: handler.onBroadcast
+    handler: src/handler/wsConnectionHandler.onBroadcast
     events:
       - websocket:
           route: broadcast
   Send:
-    handler: handler.onSend
+    handler: src/handler/wsConnectionHandler.onSend
     events:
       - websocket:
           route: send
