@@ -34,11 +34,11 @@ module.exports.createUser = async (event, context, callback) => {
     await client.connect();
     const db = await client.db("fff");
     const users = await db.collection("users");
-    const usr = await users.insertOne(params.Item);
+    const result = await users.insertOne(params.Item);
     response = {
       statusCode: 201,
       body: JSON.stringify({
-        message: usr,
+        message: result,
       }),
     };
   } catch (e) {
