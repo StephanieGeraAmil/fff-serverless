@@ -1,13 +1,16 @@
 service: fff-serverless
 
 frameworkVersion: "3"
-
+custom:
+  stage: "${opt:stage, self:provider.stage}"
 provider:
   websocketsApiName: websockets-api
   websocketsApiRouteSelectionExpression: ${request.body.action}
   name: aws
+  stage: "dev"
   runtime: nodejs12.x
   region: us-east-1
+  environment: ${file(env.yml):${self:custom.stage}}
   iamRoleStatements:
     - Effect: Allow
       Action:
