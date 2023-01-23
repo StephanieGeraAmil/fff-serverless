@@ -1,41 +1,53 @@
-'use strict'
-const AWS=require ('aws-sdk');
+"use strict";
+const AWS = require("aws-sdk");
+const uuid = require("uuid");
+const MongoClient = require("mongodb").MongoClient;
 
-const dynamoDB= new AWS.DynamoDB.DocumentClient();
-module.exports.updateUser = (event, context, callback)=>{
-    const  now= new Date().toISOString();
-    const data= JSON.parse(event.body);
-    if ( typeof data.email != 'string'){
-        console.error ('User must have an email of type string');
-       
-        const response ={
-            statusCode: 400,
-            body: JSON.stringify({"message":"User must have an email of type string"})
-        }
+module.exports.updateUser = async (event, context, callback) => {
+  const now = new Date().toISOString();
+  const data = JSON.parse(event.body);
+  const upd = {
+    updatedAt: now,
+  };
+  if (data.email) {
+    upd.email = data.email;
+  }
+  const params = {
+    TableName: "users",
+    Item: { $set: upd },
+    Key: {
+      id: event.pathParameters.id,
+    },
+  };
+  const client = await new MongoClient(
+    process.env.MONGO_DB_ATLAS_CONECTION_STRING,
+    {
+      useNewUrlParser: true,
     }
-    const params={
-        TableName: 'users',
-        Key: {
-            id: event.pathParameters.id
-        },
-        ExpressionAttributeValues: {
-            ":e": data.email,
-            ":u": now
-        },
-        UpdateExpression:  'set email = :e, updatedAt= :u'
-    }
-    dynamoDB.update(params,(error, data)=>{
-       
-        if(error){
-            console.log(error);
-            callback(new Error(error));
-            return;
-        }
-        const response={
-            statusCode:200,
-            body: JSON.stringify(data.Item)
-        }
-        callback(null, response);
-    })
+  );
 
-}
+  let response;
+
+  try {
+    await client.connect();
+    const db = await client.db("fff");
+    const users = await db.collection("users");
+    const result = await users.updateOne(params.Key, params.Item);
+    response = {
+      statusCode: 201,
+      body: JSON.stringify({
+        message: result,
+      }),
+    };
+  } catch (e) {
+    console.warn(e);
+    response = {
+      statusCode: 400,
+      body: JSON.stringify({
+        message: e,
+      }),
+    };
+  } finally {
+    return response;
+  }
+};
