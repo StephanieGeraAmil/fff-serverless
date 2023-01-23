@@ -24,12 +24,21 @@ module.exports.getUser = async (event, context, callback) => {
     const db = await client.db("fff");
     const users = await db.collection("users");
     const usr = await users.findOne(params.Key);
-    response = {
-      statusCode: 200,
-      body: JSON.stringify({
-        message: usr,
-      }),
-    };
+    if (usr !== null) {
+      response = {
+        statusCode: 200,
+        body: JSON.stringify({
+          message: usr,
+        }),
+      };
+    } else {
+      response = {
+        statusCode: 500,
+        body: JSON.stringify({
+          message: "user not found",
+        }),
+      };
+    }
   } catch (e) {
     console.warn(e);
     response = {

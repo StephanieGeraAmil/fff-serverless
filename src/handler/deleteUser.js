@@ -3,17 +3,19 @@ const AWS = require("aws-sdk");
 const uuid = require("uuid");
 const MongoClient = require("mongodb").MongoClient;
 
-module.exports.deleteUser = async (event, context, callback) => { 
+module.exports.deleteUser = async (event, context, callback) => {
   const params = {
     TableName: "users",
     Key: {
-            id: event.pathParameters.id
-        }
+      id: event.pathParameters.id,
+    },
   };
-  const client = await new MongoClient(process.env.MONGO_DB_ATLAS_CONECTION_STRING, {
-    useNewUrlParser: true,
-  });
-
+  const client = await new MongoClient(
+    process.env.MONGO_DB_ATLAS_CONECTION_STRING,
+    {
+      useNewUrlParser: true,
+    }
+  );
 
   let response;
 
@@ -22,12 +24,21 @@ module.exports.deleteUser = async (event, context, callback) => {
     const db = await client.db("fff");
     const users = await db.collection("users");
     const usr = await users.deleteOne(params.Key);
-    response = {
-      statusCode: 202,
-      body: JSON.stringify({
-        message: usr,
-      }),
-    };
+    if (usr !== null) {
+      response = {
+        statusCode: 202,
+        body: JSON.stringify({
+          message: usr,
+        }),
+      };
+    } else {
+      response = {
+        statusCode: 500,
+        body: JSON.stringify({
+          message: "user not found",
+        }),
+      };
+    }
   } catch (e) {
     console.warn(e);
     response = {

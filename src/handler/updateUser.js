@@ -33,12 +33,21 @@ module.exports.updateUser = async (event, context, callback) => {
     const db = await client.db("fff");
     const users = await db.collection("users");
     const result = await users.updateOne(params.Key, params.Item);
-    response = {
-      statusCode: 204,
-      body: JSON.stringify({
-        message: result,
-      }),
-    };
+    if (usr !== null) {
+      response = {
+        statusCode: 204,
+        body: JSON.stringify({
+          message: result,
+        }),
+      };
+    } else {
+      response = {
+        statusCode: 500,
+        body: JSON.stringify({
+          message: "user not found",
+        }),
+      };
+    }
   } catch (e) {
     console.warn(e);
     response = {
