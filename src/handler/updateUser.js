@@ -34,7 +34,7 @@ module.exports.updateUser = async (event, context, callback) => {
     const users = await db.collection("users");
     const result = await users.updateOne(params.Key, params.Item);
     response = {
-      statusCode: 201,
+      statusCode: 204,
       body: JSON.stringify({
         message: result,
       }),

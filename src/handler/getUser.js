@@ -25,7 +25,7 @@ module.exports.getUser = async (event, context, callback) => {
     const users = await db.collection("users");
     const usr = await users.findOne(params.Key);
     response = {
-      statusCode: 201,
+      statusCode: 200,
       body: JSON.stringify({
         message: usr,
       }),

@@ -23,7 +23,7 @@ module.exports.deleteUser = async (event, context, callback) => {
     const users = await db.collection("users");
     const usr = await users.deleteOne(params.Key);
     response = {
-      statusCode: 201,
+      statusCode: 202,
       body: JSON.stringify({
         message: usr,
       }),

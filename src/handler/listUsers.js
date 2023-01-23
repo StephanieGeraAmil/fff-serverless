@@ -21,7 +21,7 @@ module.exports.listUsers = async (event, context, callback) => {
     const usrs = await users.find().toArray();
     console.warn (usrs);
     response = {
-      statusCode: 201,
+      statusCode: 200,
       body: JSON.stringify({
         message: usrs,
       }),
