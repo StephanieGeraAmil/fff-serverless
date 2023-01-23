@@ -1,27 +1,42 @@
-'use strict'
-const AWS=require ('aws-sdk');
+"use strict";
+const AWS = require("aws-sdk");
+const uuid = require("uuid");
+const MongoClient = require("mongodb").MongoClient;
 
-const dynamoDB= new AWS.DynamoDB.DocumentClient();
-module.exports.deleteUser = (event, context, callback)=>{
- 
-    const params={
-        TableName: 'users',
-        Key: {
+module.exports.deleteUser = async (event, context, callback) => { 
+  const params = {
+    TableName: "users",
+    Key: {
             id: event.pathParameters.id
         }
-    }
-    dynamoDB.delete(params,(error, data)=>{
-      
-        if(error){
-            console.log(error);
-            callback(new Error(error));
-            return;
-        }
-        const response={
-            statusCode:200,
-            body: JSON.stringify({})
-        }
-        callback(null, response);
-    })
+  };
+  const client = await new MongoClient(process.env.MONGO_DB_ATLAS_CONECTION_STRING, {
+    useNewUrlParser: true,
+  });
 
-}
+
+  let response;
+
+  try {
+    await client.connect();
+    const db = await client.db("fff");
+    const users = await db.collection("users");
+    const usr = await users.deleteOne(params.Key);
+    response = {
+      statusCode: 201,
+      body: JSON.stringify({
+        message: usr,
+      }),
+    };
+  } catch (e) {
+    console.warn(e);
+    response = {
+      statusCode: 400,
+      body: JSON.stringify({
+        message: e,
+      }),
+    };
+  } finally {
+    return response;
+  }
+};
