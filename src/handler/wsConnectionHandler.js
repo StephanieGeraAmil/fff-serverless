@@ -1,17 +1,27 @@
-'use strict'
-const AWS=require ('aws-sdk');
-const dynamoDB= new AWS.DynamoDB.DocumentClient();
+"use strict";
+const AWS = require("aws-sdk");
+const MongoClient = require("mongodb").MongoClient;
 
 module.exports.onConnect = async (event) => {
   const connectionId = event.requestContext.connectionId;
-  const putParams = {
+  const params = {
     TableName: "web-socket-connections",
-    Item: {
+    Key: {
       connectionId: connectionId,
     },
   };
+
   try {
-    await dynamoDB.put(putParams).promise();
+    const client = await new MongoClient(
+      process.env.MONGO_DB_ATLAS_CONECTION_STRING,
+      {
+        useNewUrlParser: true,
+      }
+    );
+    await client.connect();
+    const db = await client.db("fff");
+    const liveConnections = await db.collection("web-socket-connections");
+    await liveConnections.insertOne(params.Key);
   } catch (error) {
     return {
       statusCode: 500,
@@ -25,14 +35,24 @@ module.exports.onConnect = async (event) => {
 
 module.exports.onDisconnect = async (event) => {
   const connectionId = event.requestContext.connectionId;
-  const delParams = {
+  const params = {
     TableName: "web-socket-connections",
     Key: {
       connectionId: connectionId,
     },
   };
+
   try {
-    await dynamoDB.delete(delParams).promise();
+    const client = await new MongoClient(
+      process.env.MONGO_DB_ATLAS_CONECTION_STRING,
+      {
+        useNewUrlParser: true,
+      }
+    );
+    await client.connect();
+    const db = await client.db("fff");
+    const liveConnections = await db.collection("web-socket-connections");
+    await liveConnections.deleteOne(params.Key);
   } catch (error) {
     return {
       statusCode: 500,
@@ -43,28 +63,27 @@ module.exports.onDisconnect = async (event) => {
     statusCode: 200,
   };
 };
+//{"action":"broadcast", "data":"HI"}
 module.exports.onBroadcast = async (event) => {
   let connectionData;
-  try {
-    connectionData = await dynamoDB
-      .scan({
-        TableName: "web-socket-connections",
-        ProjectionExpression: "connectionId",
-      })
-      .promise();
-  } catch (e) {
-    return { statusCode: 500, body: e.stack };
-  }
+  let liveConnections;
+  const client = await new MongoClient(
+    process.env.MONGO_DB_ATLAS_CONECTION_STRING,
+    { useNewUrlParser: true }
+  );
+  const postData = JSON.parse(event.body).data;
 
   const apigwManagementApi = new AWS.ApiGatewayManagementApi({
-    // apiVersion: "2018-11-29",
     endpoint:
       event.requestContext.domainName + "/" + event.requestContext.stage,
   });
+  await client.connect();
+  const db = await client.db("fff");
+  liveConnections = await db.collection("web-socket-connections");
 
-  const postData = JSON.parse(event.body).data;
-
-  const postCalls = connectionData.Items.map(async ({ connectionId }) => {
+  connectionData = await liveConnections.find().toArray();
+  console.warn(connectionData);
+  const postCalls = connectionData.map(async ({ connectionId }) => {
     try {
       await apigwManagementApi
         .postToConnection({ ConnectionId: connectionId, Data: postData })
@@ -72,30 +91,28 @@ module.exports.onBroadcast = async (event) => {
     } catch (e) {
       if (e.statusCode === 410) {
         console.log(`Found stale connection, deleting ${connectionId}`);
-        await ddb
-          .delete({
-            TableName: "web-socket-connections",
-            Key: { connectionId },
-          })
-          .promise();
+        console.warn(e);
+
+        await liveConnections.deleteOne({
+          ConnectionId: connectionId,
+        });
+        console.warn("just deleted");
       } else {
         throw e;
       }
     }
   });
-
-  try {
-    await Promise.all(postCalls);
-  } catch (e) {
-    return { statusCode: 500, body: e.stack };
-  }
-
+  await Promise.all(postCalls);
   return { statusCode: 200, body: "Data sent." };
 };
 
-
 module.exports.onSend = async (event) => {
-  
+  const client = await new MongoClient(
+    process.env.MONGO_DB_ATLAS_CONECTION_STRING,
+    {
+      useNewUrlParser: true,
+    }
+  );
   const apigwManagementApi = new AWS.ApiGatewayManagementApi({
     endpoint:
       event.requestContext.domainName + "/" + event.requestContext.stage,
@@ -110,12 +127,12 @@ module.exports.onSend = async (event) => {
   } catch (e) {
     if (e.statusCode === 410) {
       console.log(`Found stale connection, deleting ${postDestination}`);
-      await ddb
-        .delete({
-          TableName: "web-socket-connections",
-          Key: { postDestination },
-        })
-        .promise();
+      await client.connect();
+      const db = await client.db("fff");
+      const liveConnections = await db.collection("web-socket-connections");
+      const res = await liveConnections.deleteOne({
+        connectionId: connectionId,
+      });
     } else {
       throw e;
     }
