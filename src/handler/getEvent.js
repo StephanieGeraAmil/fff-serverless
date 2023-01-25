@@ -3,18 +3,9 @@ const AWS = require("aws-sdk");
 const uuid = require("uuid");
 const MongoClient = require("mongodb").MongoClient;
 
-module.exports.updateUser = async (event, context, callback) => {
-  const now = new Date().toISOString();
-  const data = JSON.parse(event.body);
-  const upd = {
-    updatedAt: now,
-  };
-  if (data.email) {
-    upd.email = data.email;
-  }
+module.exports.getEvent = async (event, context, callback) => {
   const params = {
-    TableName: "users",
-    Item: { $set: upd },
+    TableName: "events",
     Key: {
       id: event.pathParameters.id,
     },
@@ -31,20 +22,20 @@ module.exports.updateUser = async (event, context, callback) => {
   try {
     await client.connect();
     const db = await client.db("fff");
-    const users = await db.collection("users");
-    const result = await users.updateOne(params.Key, params.Item);
-    if (result !== null) {
+    const Events = await db.collection("events");
+    const usr = await Events.findOne(params.Key);
+    if (usr !== null) {
       response = {
-        statusCode: 204,
+        statusCode: 200,
         body: JSON.stringify({
-          message: result,
+          message: usr,
         }),
       };
     } else {
       response = {
         statusCode: 500,
         body: JSON.stringify({
-          message: "user not found",
+          message: "Event not found",
         }),
       };
     }

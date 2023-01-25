@@ -19,6 +19,9 @@ module.exports.createUser = async (event, context, callback) => {
     Item: {
       id: uuid.v4(),
       email: data.email,
+      //   name: data.name,
+      //  gender: data.gender,
+      //   birthDate: data.birthDate,ß
       createdAt: now,
       updatedAt: now,
     },

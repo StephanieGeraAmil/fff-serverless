@@ -88,6 +88,41 @@ functions:
           path: users/{id}
           method: delete
           cors: true
+  create-event:
+    handler: src/handler/createEvent.createEvent
+    events:
+      - http:
+          path: events
+          method: post
+          cors: true
+  list-events:
+    handler: src/handler/listEvents.listEvents
+    events:
+      - http:
+          path: events
+          method: get
+          cors: true
+  get-event:
+    handler: src/handler/getEvent.getEvent
+    events:
+      - http:
+          path: events/{id}
+          method: get
+          cors: true
+  update-event:
+    handler: src/handler/updateEvent.updateEvent
+    events:
+      - http:
+          path: events/{id}
+          method: put
+          cors: true
+  delete-event:
+    handler: src/handler/deleteEvent.deleteEvent
+    events:
+      - http:
+          path: events/{id}
+          method: delete
+          cors: true
   OnConnectHandler:
     handler: src/handler/wsConnectionHandler.onConnect
     events:
