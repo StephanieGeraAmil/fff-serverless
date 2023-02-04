@@ -143,3 +143,15 @@ functions:
     events:
       - websocket:
           route: send
+  AddConnectionInfo:
+    handler: src/handler/wsConnectionHandler.onAddConnectionInfo
+    events:
+      - websocket:
+          route: addConnectionInfo
+  CrudEvents:
+    handler: src/handler/wsConnectionHandler.onEventCRUD
+    events:
+      - websocket:
+          route: eventCrud
+
+    # we would need to add a JoinEvent handler and a LeaveEvent handler

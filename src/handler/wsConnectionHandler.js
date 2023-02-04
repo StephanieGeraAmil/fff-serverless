@@ -6,7 +6,7 @@ module.exports.onConnect = async (event) => {
   const connectionId = event.requestContext.connectionId;
   const params = {
     TableName: "web-socket-connections",
-    Key: {
+    Client: {
       connectionId: connectionId,
     },
   };
@@ -20,8 +20,8 @@ module.exports.onConnect = async (event) => {
     );
     await client.connect();
     const db = await client.db("fff");
-    const liveConnections = await db.collection("web-socket-connections");
-    await liveConnections.insertOne(params.Key);
+    const liveConnections = await db.collection(params.TableName);
+    await liveConnections.insertOne(params.Client);
   } catch (error) {
     return {
       statusCode: 500,
@@ -31,6 +31,8 @@ module.exports.onConnect = async (event) => {
   return {
     statusCode: 200,
   };
+
+  //it would be wise to utilize the connection comunication to send back the inital events to be shown in the client
 };
 
 module.exports.onDisconnect = async (event) => {
@@ -51,7 +53,7 @@ module.exports.onDisconnect = async (event) => {
     );
     await client.connect();
     const db = await client.db("fff");
-    const liveConnections = await db.collection("web-socket-connections");
+    const liveConnections = await db.collection(params.TableName);
     await liveConnections.deleteOne(params.Key);
   } catch (error) {
     return {
@@ -139,3 +141,102 @@ module.exports.onSend = async (event) => {
   }
   return { statusCode: 200, body: "Data sent." };
 };
+
+module.exports.onAddConnectionInfo = async (event) => {
+  try {
+    const connectionId = event.requestContext.connectionId;
+    const client = await new MongoClient(
+      process.env.MONGO_DB_ATLAS_CONECTION_STRING,
+      {
+        useNewUrlParser: true,
+      }
+    );
+    const location = JSON.parse(event.body).location;
+
+    if (location.country && location.city) {
+      const upd = {
+        country: location.country,
+        city: location.city,
+      };
+      const params = {
+        TableName: "web-socket-connections",
+        Item: { $set: upd },
+        Key: {
+          connectionId: connectionId,
+        },
+      };
+      await client.connect();
+      const db = await client.db("fff");
+      const liveConnections = await db.collection(params.TableName);
+      await liveConnections.updateOne(params.Key, params.Item);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+module.exports.onEventCRUD = async (event) => {
+  try {
+    const connectionId = event.requestContext.connectionId;
+    const client = await new MongoClient(
+      process.env.MONGO_DB_ATLAS_CONECTION_STRING,
+      {
+        useNewUrlParser: true,
+      }
+    );
+    const operation = JSON.parse(event.body).operation;
+    const eventID = JSON.parse(event.body).eventID;
+    const bodyToOperation = JSON.parse(event.body).bodyToOperation;
+    switch (operation) {
+      case "create":
+        if (operation && bodyToOperation) {
+          const params = {
+            TableName: "events",
+            Item: bodyToOperation,
+          };
+          await client.connect();
+          const db = await client.db("fff");
+          const liveConnections = await db.collection(params.TableName);
+          await liveConnections.insertOne(params.Item);
+        }
+
+      case "update":
+        if (operation && eventID && bodyToOperation) {
+          const params = {
+            TableName: "events",
+            Item: { $set: bodyToOperation },
+            Key: {
+              eventId: eventID,
+            },
+          };
+          await client.connect();
+          const db = await client.db("fff");
+          const liveConnections = await db.collection(params.TableName);
+          await liveConnections.updateOne(params.Key, params.Item);
+        }
+
+      case "delete":
+        if (operation && eventID) {
+          const params = {
+            TableName: "events",
+            Key: {
+              eventId: eventID,
+            },
+          };
+          await client.connect();
+          const db = await client.db("fff");
+          const liveConnections = await db.collection(params.TableName);
+          await liveConnections.deleteOne(params.Key);
+        }
+
+      case "read":
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+//we need an eventsInMyCity event that will send the info about the events from a specific city (with pagination?)
+/// we need an onNewEvent event that will save into the databse and send an broadcast to all connected clients from that city
+///we will need an onUpdateEvent and an onDeleteEvent too
+
+//we will need an onJoinEvent and an onLeaveEvent
+//we will need a onListEvent and a onListParticipants
