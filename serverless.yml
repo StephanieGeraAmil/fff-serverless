@@ -15,42 +15,10 @@ provider:
     - Effect: Allow
       Action:
         - logs:*
-        - dynamodb:*
         - states:*
         - events:*
       Resource:
         - "*"
-        - "arn:aws:dynamodb:*:*:*"
-
-resources:
-  Resources:
-    UserTable:
-      Type: "AWS::DynamoDB::Table"
-      DeletionPolicy: Retain
-      Properties:
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-        TableName: "users"
-    WebSocketTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: web-socket-connections
-        AttributeDefinitions:
-          - AttributeName: connectionId
-            AttributeType: S
-        KeySchema:
-          - AttributeName: connectionId
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
 
 functions:
   create-user:
@@ -60,32 +28,29 @@ functions:
           path: users
           method: post
           cors: true
-  list-users:
-    handler: src/handler/listUsers.listUsers
+  get-user:
+    handler: src/handler/getUser.getUser
     events:
       - http:
           path: users
           method: get
           cors: true
-  get-user:
-    handler: src/handler/getUser.getUser
-    events:
       - http:
-          path: users/{id}
+          path: users/{param}
           method: get
           cors: true
   update-user:
     handler: src/handler/updateUser.updateUser
     events:
       - http:
-          path: users/{id}
+          path: users/{param}
           method: put
           cors: true
   delete-user:
     handler: src/handler/deleteUser.deleteUser
     events:
       - http:
-          path: users/{id}
+          path: users/{param}
           method: delete
           cors: true
   create-event:
@@ -106,21 +71,21 @@ functions:
     handler: src/handler/getEvent.getEvent
     events:
       - http:
-          path: events/{id}
+          path: events/{param}
           method: get
           cors: true
   update-event:
     handler: src/handler/updateEvent.updateEvent
     events:
       - http:
-          path: events/{id}
+          path: events/{param}
           method: put
           cors: true
   delete-event:
     handler: src/handler/deleteEvent.deleteEvent
     events:
       - http:
-          path: events/{id}
+          path: events/{param}
           method: delete
           cors: true
   OnConnectHandler:

@@ -3,13 +3,8 @@ const AWS = require("aws-sdk");
 const uuid = require("uuid");
 const MongoClient = require("mongodb").MongoClient;
 
-module.exports.getUser = async (event, context, callback) => {
-  const params = {
-    TableName: "users",
-    Key: {
-      id: event.pathParameters.id,
-    },
-  };
+module.exports.getUser = async (event) => {
+  let params=null;
   const client = await new MongoClient(
     process.env.MONGO_DB_ATLAS_CONECTION_STRING,
     {
@@ -17,18 +12,31 @@ module.exports.getUser = async (event, context, callback) => {
     }
   );
 
-  let response;
+  let response = null;
 
   try {
+    if (event.pathParameters && event.pathParameters.param) {
+      params = {
+        TableName: "users",
+        Key: { email: event.pathParameters.param },
+      };
+    }
+    
     await client.connect();
     const db = await client.db("fff");
     const users = await db.collection("users");
-    const usr = await users.findOne(params.Key);
-    if (usr !== null) {
+    let result = null;
+    if (params && params.Key ) {
+      result = await users.findOne(params.Key);
+    } else {
+      result = await users.find().toArray();
+    }
+
+    if (result !== null) {
       response = {
         statusCode: 200,
         body: JSON.stringify({
-          message: usr,
+          message: result,
         }),
       };
     } else {
