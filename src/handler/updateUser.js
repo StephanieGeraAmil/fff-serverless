@@ -12,6 +12,12 @@ module.exports.updateUser = async (event, context, callback) => {
   if (data.email) {
     upd.email = data.email;
   }
+  if (data.gender) {
+    upd.gender = data.gender;
+  }
+  if (data.birthdate) {
+    upd.birthdate = data.birthdate;
+  }
   const params = {
     TableName: "users",
     Item: { $set: upd },
