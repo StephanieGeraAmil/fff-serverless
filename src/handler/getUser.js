@@ -4,7 +4,7 @@ const uuid = require("uuid");
 const MongoClient = require("mongodb").MongoClient;
 
 module.exports.getUser = async (event) => {
-  let params=null;
+  let params;
   const client = await new MongoClient(
     process.env.MONGO_DB_ATLAS_CONECTION_STRING,
     {
@@ -15,11 +15,13 @@ module.exports.getUser = async (event) => {
   let response = null;
 
   try {
-    if (event.pathParameters && event.pathParameters.param) {
-      params = {
-        TableName: "users",
-        Key: { email: event.pathParameters.param },
+     console.warn(event.queryStringParameters)
+    if (event.queryStringParameters) {
+     params= {
+        Key: event.queryStringParameters
       };
+       console.warn(params)
+      
     }
     
     await client.connect();
