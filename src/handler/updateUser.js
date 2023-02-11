@@ -2,8 +2,10 @@
 const AWS = require("aws-sdk");
 const uuid = require("uuid");
 const MongoClient = require("mongodb").MongoClient;
+const middy = require("middy");
+const { cors } = require("middy/middlewares");
 
-module.exports.updateUser = async (event, context, callback) => {
+const updtUser = async (event, context, callback) => {
   const now = new Date().toISOString();
   const data = JSON.parse(event.body);
   const upd = {
@@ -12,11 +14,14 @@ module.exports.updateUser = async (event, context, callback) => {
   if (data.email) {
     upd.email = data.email;
   }
+  if (data.name) {
+    upd.name = data.name;
+  }
   if (data.gender) {
     upd.gender = data.gender;
   }
-  if (data.birthdate) {
-    upd.birthdate = data.birthdate;
+  if (data.birthDate) {
+    upd.birthDate = data.birthDate;
   }
   const params = {
     TableName: "users",
@@ -31,9 +36,7 @@ module.exports.updateUser = async (event, context, callback) => {
       useNewUrlParser: true,
     }
   );
-
   let response;
-
   try {
     await client.connect();
     const db = await client.db("fff");
@@ -66,3 +69,6 @@ module.exports.updateUser = async (event, context, callback) => {
     return response;
   }
 };
+const updateUser = middy(updtUser).use(cors()); // Adds CORS headers to responses
+
+module.exports = { updateUser };

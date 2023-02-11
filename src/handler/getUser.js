@@ -15,20 +15,17 @@ module.exports.getUser = async (event) => {
   let response = null;
 
   try {
-     console.warn(event.queryStringParameters)
     if (event.queryStringParameters) {
-     params= {
-        Key: event.queryStringParameters
+      params = {
+        Key: event.queryStringParameters,
       };
-       console.warn(params)
-      
     }
-    
+
     await client.connect();
     const db = await client.db("fff");
     const users = await db.collection("users");
     let result = null;
-    if (params && params.Key ) {
+    if (params && params.Key) {
       result = await users.findOne(params.Key);
     } else {
       result = await users.find().toArray();
@@ -37,6 +34,10 @@ module.exports.getUser = async (event) => {
     if (result !== null) {
       response = {
         statusCode: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Credentials": true,
+        },
         body: JSON.stringify({
           message: result,
         }),
@@ -44,6 +45,10 @@ module.exports.getUser = async (event) => {
     } else {
       response = {
         statusCode: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Credentials": true,
+        },
         body: JSON.stringify({
           message: "user not found",
         }),
@@ -53,6 +58,10 @@ module.exports.getUser = async (event) => {
     console.warn(e);
     response = {
       statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+      },
       body: JSON.stringify({
         message: e,
       }),
