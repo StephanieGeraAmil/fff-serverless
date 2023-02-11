@@ -9,6 +9,11 @@ module.exports.createUser = async (event, context, callback) => {
   if (typeof data.email != "string") {
     const response = {
       statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+        "Access-Control-Allow-Methods": "*",
+      },
       body: JSON.stringify({
         message: "User must have an email of type string",
       }),
@@ -19,17 +24,25 @@ module.exports.createUser = async (event, context, callback) => {
     Item: {
       id: uuid.v4(),
       email: data.email,
-      //   name: data.name,
-      //  gender: data.gender,
-      //   birthDate: data.birthDate,ß
       createdAt: now,
       updatedAt: now,
     },
   };
-  const client = await new MongoClient(process.env.MONGO_DB_ATLAS_CONECTION_STRING, {
-    useNewUrlParser: true,
-  });
-
+  if (data.name) {
+    params.Item.name = data.name;
+  }
+  if (data.gender) {
+    params.Item.gender = data.gender;
+  }
+  if (data.birthDate) {
+    params.Item.birthDate = data.birthDate;
+  }
+  const client = await new MongoClient(
+    process.env.MONGO_DB_ATLAS_CONECTION_STRING,
+    {
+      useNewUrlParser: true,
+    }
+  );
 
   let response;
 
@@ -37,9 +50,15 @@ module.exports.createUser = async (event, context, callback) => {
     await client.connect();
     const db = await client.db("fff");
     const users = await db.collection("users");
+
     const result = await users.insertOne(params.Item);
     response = {
       statusCode: 201,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+        "Access-Control-Allow-Methods": "*",
+      },
       body: JSON.stringify({
         message: result,
       }),
@@ -48,6 +67,11 @@ module.exports.createUser = async (event, context, callback) => {
     console.warn(e);
     response = {
       statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+        "Access-Control-Allow-Methods": "*",
+      },
       body: JSON.stringify({
         message: e,
       }),
