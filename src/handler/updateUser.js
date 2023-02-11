@@ -9,6 +9,7 @@ module.exports.updateUser  = async (event, context, callback) => {
   const upd = {
     updatedAt: now,
   };
+  
   if (data.email) {
     upd.email = data.email;
   }
@@ -28,6 +29,7 @@ module.exports.updateUser  = async (event, context, callback) => {
       id: event.pathParameters.id,
     },
   };
+
   const client = await new MongoClient(
     process.env.MONGO_DB_ATLAS_CONECTION_STRING,
     {
