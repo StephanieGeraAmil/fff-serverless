@@ -2,10 +2,8 @@
 const AWS = require("aws-sdk");
 const uuid = require("uuid");
 const MongoClient = require("mongodb").MongoClient;
-const middy = require("middy");
-const { cors } = require("middy/middlewares");
 
-const updtUser = async (event, context, callback) => {
+module.exports.updateUser  = async (event, context, callback) => {
   const now = new Date().toISOString();
   const data = JSON.parse(event.body);
   const upd = {
@@ -36,7 +34,9 @@ const updtUser = async (event, context, callback) => {
       useNewUrlParser: true,
     }
   );
+
   let response;
+
   try {
     await client.connect();
     const db = await client.db("fff");
@@ -45,6 +45,11 @@ const updtUser = async (event, context, callback) => {
     if (result !== null) {
       response = {
         statusCode: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Credentials": true,
+          "Access-Control-Allow-Methods": "*",
+        },
         body: JSON.stringify({
           message: result,
         }),
@@ -52,6 +57,11 @@ const updtUser = async (event, context, callback) => {
     } else {
       response = {
         statusCode: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Credentials": true,
+          "Access-Control-Allow-Methods": "*",
+        },
         body: JSON.stringify({
           message: "user not found",
         }),
@@ -61,6 +71,11 @@ const updtUser = async (event, context, callback) => {
     console.warn(e);
     response = {
       statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+        "Access-Control-Allow-Methods": "*",
+      },
       body: JSON.stringify({
         message: e,
       }),
@@ -69,6 +84,4 @@ const updtUser = async (event, context, callback) => {
     return response;
   }
 };
-const updateUser = middy(updtUser).use(cors()); // Adds CORS headers to responses
 
-module.exports = { updateUser };
