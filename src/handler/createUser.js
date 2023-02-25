@@ -52,6 +52,7 @@ module.exports.createUser = async (event, context, callback) => {
     const users = await db.collection("users");
 
     const result = await users.insertOne(params.Item);
+    const userInserted = await users.findOne(result.insertedId);
     response = {
       statusCode: 201,
       headers: {
@@ -59,9 +60,7 @@ module.exports.createUser = async (event, context, callback) => {
         "Access-Control-Allow-Credentials": true,
         "Access-Control-Allow-Methods": "*",
       },
-      body: JSON.stringify({
-        message: result,
-      }),
+      body: JSON.stringify(userInserted),
     };
   } catch (e) {
     console.warn(e);
