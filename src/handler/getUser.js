@@ -2,26 +2,18 @@
 const AWS = require("aws-sdk");
 const uuid = require("uuid");
 const MongoClient = require("mongodb").MongoClient;
+const getClient = require("../mongo_client.js");
 
 module.exports.getUser = async (event) => {
   let params;
-  const client = await new MongoClient(
-    process.env.MONGO_DB_ATLAS_CONECTION_STRING,
-    {
-      useNewUrlParser: true,
-    }
-  );
-
   let response = null;
-
+  const client = await getClient.getClient();
   try {
     if (event.queryStringParameters) {
       params = {
         Key: event.queryStringParameters,
       };
     }
-
-    await client.connect();
     const db = await client.db("fff");
     const users = await db.collection("users");
     let result = null;
