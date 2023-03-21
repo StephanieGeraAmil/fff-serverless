@@ -1,6 +1,5 @@
 "use strict";
 const AWS = require("aws-sdk");
-const uuid = require("uuid");
 const getClient = require("../mongo_client.js");
 
 module.exports.updateEvent = async (event) => {
