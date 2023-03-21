@@ -1,67 +1,103 @@
 "use strict";
 const AWS = require("aws-sdk");
 const uuid = require("uuid");
-const MongoClient = require("mongodb").MongoClient;
+const getClient = require("../mongo_client.js");
 
-module.exports.updateEvent = async (event, context, callback) => {
-  const now = new Date().toISOString();
-  const data = JSON.parse(event.body);
-  const upd = {
-    updatedAt: now,
-  };
-  if (data.title) upd.title = data.title;
-  if (data.eventType) upd.eventType = data.eventType;
-  if (data.creator) upd.creator = data.creator;
-  if (data.location) upd.location = data.location;
-  if (data.welcomedGeneres) upd.welcomedGeneres = data.welcomedGeneres;
-  if (data.meetingHour) upd.meetingHour = data.meetingHour;
-  if (data.meetingDays) upd.meetingDays = data.meetingDays;
-  if (data.expirationDate) upd.expirationDate = data.expirationDate;
-  const params = {
-    TableName: "events",
-    Item: { $set: upd },
-    Key: {
-      id: event.pathParameters.id,
-    },
-  };
-  const client = await new MongoClient(
-    process.env.MONGO_DB_ATLAS_CONECTION_STRING,
-    {
-      useNewUrlParser: true,
-    }
-  );
-
-  let response;
-
+module.exports.updateEvent = async (event) => {
   try {
-    await client.connect();
-    const db = await client.db("fff");
-    const Events = await db.collection("events");
-    const result = await Events.updateOne(params.Key, params.Item);
-    if (result !== null) {
-      response = {
-        statusCode: 204,
-        body: JSON.stringify({
-          message: result,
-        }),
-      };
-    } else {
-      response = {
-        statusCode: 500,
-        body: JSON.stringify({
-          message: "Event not found",
-        }),
-      };
-    }
-  } catch (e) {
-    console.warn(e);
-    response = {
-      statusCode: 400,
-      body: JSON.stringify({
-        message: e,
-      }),
+
+    const client = await getClient.getClient();
+    const now = new Date().toISOString();
+    const data = JSON.parse(event.body);
+    const eventData = data.event;
+
+    const upd = {
+      updatedAt: now,
     };
-  } finally {
-    return response;
+    
+    if (eventData.id) {
+      upd.id = eventData.id;
+    }
+    if (eventData.title) {
+      upd.title = eventData.title;
+    }
+    if (eventData.description) {
+      upd.description = eventData.description;
+    }
+    if (eventData.type) {
+      upd.type = eventData.type;
+    }
+    if (eventData.img) {
+      upd.img = eventData.img;
+    }
+    if (eventData.creator) {
+      upd.creator = eventData.creator;
+    }
+    if (eventData.lat) {
+      upd.lat = eventData.lat;
+    }
+    if (eventData.lng) {
+      upd.lng = eventData.lng;
+    }
+    if (eventData.targetGender) {
+      upd.targetGender = eventData.targetGender;
+    }
+    if (eventData.targetAgeRange) {
+      upd.targetAgeRange = eventData.targetAgeRange;
+    }
+    if (eventData.meetingHour) {
+      upd.meetingHour = eventData.meetingHour;
+    }
+    if (eventData.meetingDays) {
+      upd.meetingDays = eventData.meetingDays;
+    }
+    if (eventData.expirationDate) {
+      upd.expirationDate = eventData.expirationDate;
+    }
+    upd.createdAt = eventData.createdAt;
+
+    const Item = { $set: upd };
+    const Key = {
+      id: eventData.id,
+    };
+
+    const db = await client.db("fff");
+    const eventsTable = await db.collection("events");
+    const result = await eventsTable.updateOne(Key, Item);
+    if (!result["acknowledged"]) return;
+
+    const liveConnectionsTable = await db.collection("web-socket-connections");
+
+    const liveConnections = await liveConnectionsTable.find().toArray();
+
+    const endpoint =
+      event.requestContext.domainName + "/" + event.requestContext.stage;
+
+    const apigatewaymanagementapi = new AWS.ApiGatewayManagementApi({
+      endpoint: endpoint,
+    });
+
+    const post = async (connectionId, message) => {
+      return await apigatewaymanagementapi
+        .postToConnection({
+          ConnectionId: connectionId,
+          Data: Buffer.from(JSON.stringify(message)),
+        })
+        .promise();
+    };
+
+    const postCalls = liveConnections.map(async (connection) => {
+      const newEventMessage = JSON.stringify({
+        action: "updatedEvent",
+        data: upd,
+      });
+      return await post(connection.connectionId, newEventMessage);
+    });
+
+    await Promise.all(postCalls);
+
+    return;
+  } catch (e) {
+    return { statusCode: 500, body: e.stack };
   }
 };
