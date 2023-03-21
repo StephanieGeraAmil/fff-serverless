@@ -81,37 +81,8 @@ functions:
     events:
       - websocket:
           route: updateEvent
-
-  # we would need to add a JoinEvent handler and a LeaveEvent handler
-#   requestContext: {
-#     routeKey: 'listEvents',
-#     messageId: 'CDV1wf1ioAMCLpw=',
-#     eventType: 'MESSAGE',
-#     extendedRequestId: 'CDV1wG9fIAMFqTg=',
-#     requestTime: '19/Mar/2023:23:38:25 +0000',
-#     messageDirection: 'IN',
-#     stage: 'dev',
-#     connectedAt: 1679269104866,
-#     requestTimeEpoch: 1679269105310,
-#     identity: {
-#       userAgent: 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36',
-#       sourceIp: '179.24.122.78'
-#     },
-#     requestId: 'CDV1wG9fIAMFqTg=',
-#     domainName: '1uw1x88x5b.execute-api.us-east-1.amazonaws.com',
-#     connectionId: 'CDV1rf1doAMCLpw=',
-#     apiId: '1uw1x88x5b'
-#   },
-#   body: '{"action":"listEvents"}',
-#   isBase64Encoded: false
-# }
-
-# {"connectionId":"$context.connectionId",
-# "domainName":"$context.domainName",
-# "stage":"$context.stage"
-# }
-
-# {
-#     "connectionId": "$context.connectionId",
-#    "data":"input.body"
-# }
+  DeleteEvent:
+    handler: src/handler/deleteEvent.deleteEvent
+    events:
+      - websocket:
+          route: deleteEvent
