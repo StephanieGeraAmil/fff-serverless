@@ -5,17 +5,12 @@ const getClient = require("../mongo_client.js");
 
 module.exports.addEvent = async (event) => {
   try {
+    console.log("event", event);
     const client = await getClient.getClient();
     const now = new Date().toISOString();
-    const data = JSON.parse(event.body);
-    let response = {};
+    const data = JSON.parse(event.body).event;
     if (typeof data.title != "string") {
-      response = {
-        statusCode: 400,
-        body: JSON.stringify({
-          message: "Event must have a title of type string",
-        }),
-      };
+      console.log("not a string");
     } else {
       const params = {
         Item: {
@@ -23,43 +18,67 @@ module.exports.addEvent = async (event) => {
           title: data.title,
           lat: data.lat,
           lng: data.lng,
-          eventType: data.eventType,
+          type: data.type,
+          img: data.img,
           creator: data.creator,
           createdAt: now,
           updatedAt: now,
+          targetAgeRange:data.targetAgeRange,
+          targetGender:data.targetGender,
+            expirationDate:data.expirationDate
+
         },
       };
-      if (data.targetGenere) params.Item.targetGenere = data.targetGenere;
+     
       // if (data.meetingHour) params.Item.meetingHour = data.meetingHour;
       // if (data.meetingDays) params.Item.meetingDays = data.meetingDays;
-      if (data.expirationDate) params.Item.expirationDate = data.expirationDate;
+  
 
       const db = await client.db("fff");
-      const events = await db.collection("events");
-      const result = await events.insertOne(params.Item);
-      // response = {
-      //   statusCode: 201,
-      //   body: JSON.stringify({
-      //     message: result,
-      //   }),
-      // };
+      const eventsTable = await db.collection("events");
+      const inserted = await eventsTable.insertOne(params.Item);
+      if (!inserted["acknowledged"]) return
+      const liveConnectionsTable = await db.collection(
+        "web-socket-connections"
+      );
+
+      const liveConnections = await liveConnectionsTable.find().toArray();
+
+      const endpoint =
+        event.requestContext.domainName + "/" + event.requestContext.stage;
+
+      const apigatewaymanagementapi = new AWS.ApiGatewayManagementApi({
+        endpoint: endpoint,
+      });
+
+      const post = async (connectionId, message) => {
+        console.log("inside post function");
+        console.log("connectionId", connectionId);
+        console.log("message", message);
+        return await apigatewaymanagementapi
+          .postToConnection({
+            ConnectionId: connectionId,
+            Data: Buffer.from(JSON.stringify(message)),
+          })
+          .promise();
+      };
+
+      const postCalls = liveConnections.map(async (connection) => {
+        console.log("connection", connection);
+        const newEventMessage = JSON.stringify({
+          action: "newEvent",
+          data: params.Item,
+        });
+        console.log("newEvent", newEventMessage);
+        return await post(connection.connectionId, newEventMessage);
+      });
+
+      await Promise.all(postCalls);
+
+      return { statusCode: 200, body: "Data sent." };
     }
   } catch (e) {
-    console.warn(e);
-    response = {
-      statusCode: 400,
-      body: JSON.stringify({
-        message: e,
-      }),
-    };
-  } finally {
-    return response;
+    console.log(e.stack);
+    return { statusCode: 500, body: e.stack };
   }
 };
-
-if (operation && bodyToOperation) {
-  const params = {
-    Item: bodyToOperation,
-  };
-  await eventsTable.insertOne(params.Item);
-}
