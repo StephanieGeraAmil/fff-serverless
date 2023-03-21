@@ -50,7 +50,7 @@ module.exports.listEvents = async (event) => {
 
     await Promise.all(postCalls);
 
-  return { statusCode: 200, body: "Data sent." };
+  return ;
   }catch(e){
     console.warn(e.stack);
      return { statusCode: 500, body: e.stack };

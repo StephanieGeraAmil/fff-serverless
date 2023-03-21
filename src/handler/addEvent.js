@@ -75,7 +75,7 @@ module.exports.addEvent = async (event) => {
 
       await Promise.all(postCalls);
 
-      return { statusCode: 200, body: "Data sent." };
+      return;
     }
   } catch (e) {
     console.log(e.stack);
