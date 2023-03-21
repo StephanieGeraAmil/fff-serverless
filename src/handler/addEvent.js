@@ -5,13 +5,10 @@ const getClient = require("../mongo_client.js");
 
 module.exports.addEvent = async (event) => {
   try {
-    console.log("event", event);
     const client = await getClient.getClient();
     const now = new Date().toISOString();
     const data = JSON.parse(event.body).event;
-    if (typeof data.title != "string") {
-      console.log("not a string");
-    } else {
+    if (typeof data.title == "string") {
       const params = {
         Item: {
           id: uuid.v4(),
@@ -23,21 +20,19 @@ module.exports.addEvent = async (event) => {
           creator: data.creator,
           createdAt: now,
           updatedAt: now,
-          targetAgeRange:data.targetAgeRange,
-          targetGender:data.targetGender,
-            expirationDate:data.expirationDate
-
+          targetAgeRange: data.targetAgeRange,
+          targetGender: data.targetGender,
+          expirationDate: data.expirationDate,
         },
       };
-     
+
       // if (data.meetingHour) params.Item.meetingHour = data.meetingHour;
       // if (data.meetingDays) params.Item.meetingDays = data.meetingDays;
-  
 
       const db = await client.db("fff");
       const eventsTable = await db.collection("events");
       const inserted = await eventsTable.insertOne(params.Item);
-      if (!inserted["acknowledged"]) return
+      if (!inserted["acknowledged"]) return;
       const liveConnectionsTable = await db.collection(
         "web-socket-connections"
       );
@@ -52,9 +47,6 @@ module.exports.addEvent = async (event) => {
       });
 
       const post = async (connectionId, message) => {
-        console.log("inside post function");
-        console.log("connectionId", connectionId);
-        console.log("message", message);
         return await apigatewaymanagementapi
           .postToConnection({
             ConnectionId: connectionId,
@@ -64,12 +56,10 @@ module.exports.addEvent = async (event) => {
       };
 
       const postCalls = liveConnections.map(async (connection) => {
-        console.log("connection", connection);
         const newEventMessage = JSON.stringify({
           action: "newEvent",
           data: params.Item,
         });
-        console.log("newEvent", newEventMessage);
         return await post(connection.connectionId, newEventMessage);
       });
 
@@ -78,7 +68,6 @@ module.exports.addEvent = async (event) => {
       return;
     }
   } catch (e) {
-    console.log(e.stack);
     return { statusCode: 500, body: e.stack };
   }
 };
