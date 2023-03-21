@@ -1,40 +1,58 @@
 "use strict";
 const AWS = require("aws-sdk");
-const uuid = require("uuid");
-const MongoClient = require("mongodb").MongoClient;
+const getClient = require("../mongo_client.js");
 
-module.exports.listEvents = async (event, context, callback) => {
- 
-  const client = await new MongoClient(
-    process.env.MONGO_DB_ATLAS_CONECTION_STRING,
-    {
-      useNewUrlParser: true,
-    }
-  );
+module.exports.listEvents = async (event) => {
+  try{
+  console.warn("event", event);
+  const client = await getClient.getClient();
+   console.warn("client", client);
+  const db = await client.db("fff");
+   console.warn("db", db);
+  const eventsTable = await db.collection("events");
+   console.warn("eventsTable", eventsTable);
+  const eventsOnDB = await eventsTable.find().toArray();
+     console.warn("eventsOnDB", eventsOnDB);
+  const liveConnectionsTable = await db.collection("web-socket-connections");
+      console.warn("liveConnectionsTable", liveConnectionsTable);
+  const liveConnections = await liveConnectionsTable.find().toArray();
+      console.warn("liveConnections", liveConnections);
+  const endpoint =
+    event.requestContext.domainName + "/" + event.requestContext.stage;
+     console.warn("endpoint", endpoint);
+  const apigatewaymanagementapi = new AWS.ApiGatewayManagementApi({
+    endpoint: endpoint,
+  });
+      console.warn("apigatewaymanagementapi", apigatewaymanagementapi);
 
-  let response;
+  const post = async (connectionId, message) => {
+     console.warn("inside post function");
+         console.warn("connectionId", connectionId);
+           console.warn("message", message);
+    return await apigatewaymanagementapi
+      .postToConnection({
+        ConnectionId: connectionId,
+        Data: Buffer.from(JSON.stringify(message))
+      })
+      .promise();
+  };
 
-  try {
-    await client.connect();
-    const db = await client.db("fff");
-    const Event = await db.collection("events");
-    const usrs = await Event.find().toArray();
-    console.warn (usrs);
-    response = {
-      statusCode: 200,
-      body: JSON.stringify({
-        message: usrs,
-      }),
-    };
-  } catch (e) {
-    console.warn(e);
-    response = {
-      statusCode: 400,
-      body: JSON.stringify({
-        message: e,
-      }),
-    };
-  } finally {
-    return response;
+  const postCalls = liveConnections.map(async (connection) => {
+        console.warn("connection", connection);
+    const listOfEvents = JSON.stringify({
+      action: "listEvents",
+      data: eventsOnDB,
+    });
+     console.warn("listOfEvents",listOfEvents);
+    return await post(connection.connectionId, listOfEvents);
+  });
+
+
+    await Promise.all(postCalls);
+
+  return { statusCode: 200, body: "Data sent." };
+  }catch(e){
+    console.warn(e.stack);
+     return { statusCode: 500, body: e.stack };
   }
 };

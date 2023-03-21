@@ -17,19 +17,10 @@ provider:
         - logs:*
         - states:*
         - events:*
+        - execute-api:ManageConnections
+        - lambda:InvokeFunction
       Resource:
         - "*"
-# resources:
-#   Resources:
-#     GatewayResponseDefault4XX:
-#       Type: "AWS::ApiGateway::GatewayResponse"
-#       Properties:
-#         ResponseParameters:
-#           gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-#           gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
-#         ResponseType: DEFAULT_4XX
-#         RestApiId:
-#           Ref: "ApiGatewayRestApi"
 
 functions:
   create-user:
@@ -46,7 +37,6 @@ functions:
           path: users
           method: get
           cors: true
-
   update-user:
     handler: src/handler/updateUser.updateUser
     events:
@@ -61,41 +51,6 @@ functions:
           path: users/{id}
           method: delete
           cors: true
-  create-event:
-    handler: src/handler/createEvent.createEvent
-    events:
-      - http:
-          path: events
-          method: post
-          cors: true
-  list-events:
-    handler: src/handler/listEvents.listEvents
-    events:
-      - http:
-          path: events
-          method: get
-          cors: true
-  get-event:
-    handler: src/handler/getEvent.getEvent
-    events:
-      - http:
-          path: events/{id}
-          method: get
-          cors: true
-  update-event:
-    handler: src/handler/updateEvent.updateEvent
-    events:
-      - http:
-          path: events/{id}
-          method: put
-          cors: true
-  delete-event:
-    handler: src/handler/deleteEvent.deleteEvent
-    events:
-      - http:
-          path: events/{id}
-          method: delete
-          cors: true
   OnConnectHandler:
     handler: src/handler/wsConnectionHandler.onConnect
     events:
@@ -106,25 +61,57 @@ functions:
     events:
       - websocket:
           route: $disconnect
-  OnBroadcast:
-    handler: src/handler/wsConnectionHandler.onBroadcast
-    events:
-      - websocket:
-          route: broadcast
-  Send:
-    handler: src/handler/wsConnectionHandler.onSend
-    events:
-      - websocket:
-          route: send
   AddConnectionInfo:
     handler: src/handler/wsConnectionHandler.onAddConnectionInfo
     events:
       - websocket:
           route: addConnectionInfo
-  CrudEvents:
-    handler: src/handler/wsConnectionHandler.onEventCRUD
+  ListEvents:
+    handler: src/handler/listEvents.listEvents
     events:
       - websocket:
-          route: eventCrud
+          route: getListEvents
+  AddEvent:
+    handler: src/handler/addEvent.addEvent
+    events:
+      - websocket:
+          route: addEvent
+  UpdateEvent:
+    handler: src/handler/updateEvent.updateEvent
+    events:
+      - websocket:
+          route: updateEvent
 
-    # we would need to add a JoinEvent handler and a LeaveEvent handler
+  # we would need to add a JoinEvent handler and a LeaveEvent handler
+#   requestContext: {
+#     routeKey: 'listEvents',
+#     messageId: 'CDV1wf1ioAMCLpw=',
+#     eventType: 'MESSAGE',
+#     extendedRequestId: 'CDV1wG9fIAMFqTg=',
+#     requestTime: '19/Mar/2023:23:38:25 +0000',
+#     messageDirection: 'IN',
+#     stage: 'dev',
+#     connectedAt: 1679269104866,
+#     requestTimeEpoch: 1679269105310,
+#     identity: {
+#       userAgent: 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36',
+#       sourceIp: '179.24.122.78'
+#     },
+#     requestId: 'CDV1wG9fIAMFqTg=',
+#     domainName: '1uw1x88x5b.execute-api.us-east-1.amazonaws.com',
+#     connectionId: 'CDV1rf1doAMCLpw=',
+#     apiId: '1uw1x88x5b'
+#   },
+#   body: '{"action":"listEvents"}',
+#   isBase64Encoded: false
+# }
+
+# {"connectionId":"$context.connectionId",
+# "domainName":"$context.domainName",
+# "stage":"$context.stage"
+# }
+
+# {
+#     "connectionId": "$context.connectionId",
+#    "data":"input.body"
+# }

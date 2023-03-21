@@ -1,8 +1,6 @@
 {
   "dependencies": {
-    "@middy/core": "^4.2.3",
-    "aws-sdk": "^2.1288.0",
-    "mongodb": "^4.13.0",
+    "mongodb": "^4.14.0",
     "uuid": "^9.0.0"
   }
 }
