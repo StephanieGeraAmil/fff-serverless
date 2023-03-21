@@ -21,9 +21,10 @@ module.exports.addEvent = async (event) => {
         Item: {
           id: uuid.v4(),
           title: data.title,
-          // location: data.location,
+          lat: data.lat,
+          lng: data.lng,
           eventType: data.eventType,
-          //creator: data.creator,
+          creator: data.creator,
           createdAt: now,
           updatedAt: now,
         },
@@ -55,3 +56,10 @@ module.exports.addEvent = async (event) => {
     return response;
   }
 };
+
+if (operation && bodyToOperation) {
+  const params = {
+    Item: bodyToOperation,
+  };
+  await eventsTable.insertOne(params.Item);
+}
