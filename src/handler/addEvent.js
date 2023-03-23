@@ -47,8 +47,8 @@ module.exports.addEvent = async (event) => {
       if (data.meetingDays) {
         ev.meetingDays = data.meetingDays;
       }
-      if (data.expirationDate) {
-        ev.expirationDate = data.expirationDate;
+      if (data.date) {
+        ev.date = data.date;
       }
 
       // if (data.meetingHour) params.Item.meetingHour = data.meetingHour;

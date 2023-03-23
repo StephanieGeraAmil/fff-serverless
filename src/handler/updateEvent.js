@@ -50,8 +50,8 @@ module.exports.updateEvent = async (event) => {
     if (eventData.meetingDays) {
       upd.meetingDays = eventData.meetingDays;
     }
-    if (eventData.expirationDate) {
-      upd.expirationDate = eventData.expirationDate;
+    if (eventData.date) {
+      upd.date = eventData.date;
     }
     upd.createdAt = eventData.createdAt;
 
