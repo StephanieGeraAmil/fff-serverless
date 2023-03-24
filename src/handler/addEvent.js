@@ -50,9 +50,9 @@ module.exports.addEvent = async (event) => {
       if (data.date) {
         ev.date = data.date;
       }
-
-      // if (data.meetingHour) params.Item.meetingHour = data.meetingHour;
-      // if (data.meetingDays) params.Item.meetingDays = data.meetingDays;
+      if (data.chatLink) {
+        ev.chatLink = data.chatLink;
+      }
 
       const db = await client.db("fff");
       const eventsTable = await db.collection("events");
