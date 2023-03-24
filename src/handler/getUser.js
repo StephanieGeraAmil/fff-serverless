@@ -1,7 +1,7 @@
 "use strict";
 const AWS = require("aws-sdk");
 const uuid = require("uuid");
-const MongoClient = require("mongodb").MongoClient;
+// const MongoClient = require("mongodb").MongoClient;
 const getClient = require("../mongo_client.js");
 
 module.exports.getUser = async (event) => {
@@ -62,3 +62,4 @@ module.exports.getUser = async (event) => {
     return response;
   }
 };
+ 
