@@ -4,7 +4,6 @@ const getClient = require("../mongo_client.js");
 
 module.exports.updateEvent = async (event) => {
   try {
-
     const client = await getClient.getClient();
     const now = new Date().toISOString();
     const data = JSON.parse(event.body);
@@ -13,7 +12,7 @@ module.exports.updateEvent = async (event) => {
     const upd = {
       updatedAt: now,
     };
-    
+
     if (eventData.id) {
       upd.id = eventData.id;
     }
@@ -53,6 +52,7 @@ module.exports.updateEvent = async (event) => {
     if (eventData.date) {
       upd.date = eventData.date;
     }
+
     upd.createdAt = eventData.createdAt;
 
     const Item = { $set: upd };
@@ -63,6 +63,10 @@ module.exports.updateEvent = async (event) => {
     const db = await client.db("fff");
     const eventsTable = await db.collection("events");
     const result = await eventsTable.updateOne(Key, Item);
+
+    if (eventData.date == null) {
+      await eventsTable.updateOne(Key, { $unset: { date: "" } });
+    }
     if (!result["acknowledged"]) return;
 
     const liveConnectionsTable = await db.collection("web-socket-connections");
