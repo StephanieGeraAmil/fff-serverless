@@ -3,43 +3,36 @@ const AWS = require("aws-sdk");
 const uuid = require("uuid");
 const MongoClient = require("mongodb").MongoClient;
 
-module.exports.updateUser  = async (event, context, callback) => {
-  const now = new Date().toISOString();
-  const data = JSON.parse(event.body);
-  const upd = {
-    updatedAt: now,
-  };
-  
-  if (data.email) {
-    upd.email = data.email;
-  }
-  if (data.name) {
-    upd.name = data.name;
-  }
-  if (data.gender) {
-    upd.gender = data.gender;
-  }
-  if (data.birthDate) {
-    upd.birthDate = data.birthDate;
-  }
-  const params = {
-    TableName: "users",
-    Item: { $set: upd },
-    Key: {
-      id: event.pathParameters.id,
-    },
-  };
-
-  const client = await new MongoClient(
-    process.env.MONGO_DB_ATLAS_CONECTION_STRING,
-    {
-      useNewUrlParser: true,
-    }
-  );
-
-  let response;
-
+module.exports.updateUser = async (event, context, callback) => {
+  let response = [];
   try {
+    const now = new Date().toISOString();
+    const data = JSON.parse(event.body);
+    const upd = {
+      updatedAt: now,
+    };
+
+    if (data.email) {
+      upd.email = data.email;
+    }
+    if (data.name) {
+      upd.name = data.name;
+    }
+    if (data.gender) {
+      upd.gender = data.gender;
+    }
+    if (data.birthDate) {
+      upd.birthDate = data.birthDate;
+    }
+    const params = {
+      TableName: "users",
+      Item: { $set: upd },
+      Key: {
+        id: event.pathParameters.id,
+      },
+    };
+
+    const client = await getClient.getClient();
     await client.connect();
     const db = await client.db("fff");
     const users = await db.collection("users");
@@ -86,4 +79,3 @@ module.exports.updateUser  = async (event, context, callback) => {
     return response;
   }
 };
-
