@@ -5,10 +5,10 @@ const uuid = require("uuid");
 const getClient = require("../mongo_client.js");
 
 module.exports.getUser = async (event) => {
-  let params;
-  let response = null;
-  const client = await getClient.getClient();
   try {
+    let params;
+    let response = null;
+    const client = await getClient.getClient();
     if (event.queryStringParameters) {
       params = {
         Key: event.queryStringParameters,
@@ -62,4 +62,3 @@ module.exports.getUser = async (event) => {
     return response;
   }
 };
- 

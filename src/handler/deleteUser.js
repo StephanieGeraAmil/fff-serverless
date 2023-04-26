@@ -4,22 +4,14 @@ const uuid = require("uuid");
 const MongoClient = require("mongodb").MongoClient;
 
 module.exports.deleteUser = async (event, context, callback) => {
-  const params = {
-    TableName: "users",
-    Key: {
-      id: event.pathParameters.id,
-    },
-  };
-  const client = await new MongoClient(
-    process.env.MONGO_DB_ATLAS_CONECTION_STRING,
-    {
-      useNewUrlParser: true,
-    }
-  );
-
-  let response;
-
+  let response = [];
   try {
+    const params = {
+      Key: {
+        id: event.pathParameters.id,
+      },
+    };
+    const client = await getClient.getClient();
     await client.connect();
     const db = await client.db("fff");
     const users = await db.collection("users");
@@ -27,6 +19,11 @@ module.exports.deleteUser = async (event, context, callback) => {
     if (usr !== null) {
       response = {
         statusCode: 202,
+         headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Credentials": true,
+          "Access-Control-Allow-Methods": "*",
+        },
         body: JSON.stringify({
           message: usr,
         }),
@@ -34,6 +31,11 @@ module.exports.deleteUser = async (event, context, callback) => {
     } else {
       response = {
         statusCode: 500,
+          headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Credentials": true,
+          "Access-Control-Allow-Methods": "*",
+        },
         body: JSON.stringify({
           message: "user not found",
         }),
@@ -43,6 +45,11 @@ module.exports.deleteUser = async (event, context, callback) => {
     console.warn(e);
     response = {
       statusCode: 400,
+        headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+        "Access-Control-Allow-Methods": "*",
+      },
       body: JSON.stringify({
         message: e,
       }),
