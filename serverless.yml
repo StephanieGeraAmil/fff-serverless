@@ -1,26 +1,18 @@
 service: fff-serverless
 
 frameworkVersion: "3"
-custom:
-  stage: "${opt:stage, self:provider.stage}"
+
 provider:
   websocketsApiName: websockets-api
   websocketsApiRouteSelectionExpression: ${request.body.action}
   name: aws
   stage: "dev"
-  runtime: nodejs12.x
+  runtime: nodejs18.x
   region: us-east-1
-  environment: ${file(env.yml):${self:custom.stage}}
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - logs:*
-        - states:*
-        - events:*
-        - execute-api:ManageConnections
-        - lambda:InvokeFunction
-      Resource:
-        - "*"
+  environment:
+    MONGODB_URI: mongodb+srv://lambda:L4mbd4.@cluster0.ykgrq.mongodb.net/fff?retryWrites=true&w=majority
+
+  
 
 functions:
   create-user:

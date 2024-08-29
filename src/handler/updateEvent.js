@@ -43,14 +43,17 @@ module.exports.updateEvent = async (event) => {
     if (eventData.targetAgeRange) {
       upd.targetAgeRange = eventData.targetAgeRange;
     }
-  
+
     if (eventData.date) {
       upd.date = eventData.date;
     }
 
-     if (eventData.chatLink) {
-        upd.chatLink = eventData.chatLink;
-      }
+    if (eventData.chatLink) {
+      upd.chatLink = eventData.chatLink;
+    }
+    if (eventData.webLink) {
+      upd.webLink = eventData.webLink;
+    }
 
     upd.createdAt = eventData.createdAt;
 

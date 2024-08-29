@@ -53,6 +53,9 @@ module.exports.addEvent = async (event) => {
       if (data.chatLink) {
         ev.chatLink = data.chatLink;
       }
+      if (data.webLink) {
+        ev.webLink = data.webLink;
+      }
 
       const db = await client.db("fff");
       const eventsTable = await db.collection("events");
